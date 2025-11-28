@@ -54,4 +54,50 @@ class Converter {
 		}
 		return false;
 	}
+
+	/**
+	 * Get image mime type.
+	 *
+	 * @param string $image_path The path to the image.
+	 * @return string The mime type of the image or false on failure.
+	 */
+	public function get_image_mime_type( $image_path ) {
+		if ( ! $this->is_imagick_available() ) {
+			return false;
+		}
+
+		try {
+			$imagick = new \Imagick( $image_path );
+			return $imagick->getImageMimeType();
+		} catch ( \Exception $e ) {
+			return false;
+		}
+	}
+
+	/**
+	 * Convert an image to WebP format.
+	 *
+	 * @param string $image_path The path to the image.
+	 * @param int    $quality    The quality of the converted image (0-100).
+	 * @return string|false The path to the converted WebP image or false on failure
+	 */
+	public function convert_to_webp( $image_path, $quality = 80 ) {
+		if ( ! $this->is_conversion_supported() ) {
+			return false;
+		}
+
+		try {
+			$imagick = new \Imagick( $image_path );
+			$imagick->setImageFormat( 'WEBP' );
+			$imagick->setImageCompressionQuality( $quality );
+			$imagick->stripImage(); // Remove metadata to reduce size.
+			$webp_path = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $image_path );
+			$imagick->writeImage( $webp_path );
+			$imagick->clear();
+			$imagick->destroy();
+			return $webp_path;
+		} catch ( \Exception $e ) {
+			return false;
+		}
+	}
 }
