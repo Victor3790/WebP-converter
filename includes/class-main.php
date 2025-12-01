@@ -80,8 +80,10 @@ class Main {
 	public function activate() {
 		// Check if imagick is available and webp is a supported format.
 		$converter = new Converter();
-		if ( ! $converter->is_conversion_supported() ) {
-			set_transient( 'vcn_webp_conversion_supported', true, 5 );
+		if ( $converter->is_conversion_supported() ) {
+			set_transient( 'vcn_webp_conversion_supported', 'yes', 5 );
+		} else {
+			set_transient( 'vcn_webp_conversion_supported', 'no', 5 );
 		}
 	}
 
@@ -89,17 +91,24 @@ class Main {
 	 * Handle plugin admin messages.
 	 */
 	public function display_messages() {
-		if ( get_transient( 'vcn_webp_conversion_supported' ) ) {
+		$conversion_support_transient = get_transient( 'vcn_webp_conversion_supported' );
+
+		if ( ! $conversion_support_transient ) {
+			return;
+		}
+
+		if ( 'no' === $conversion_support_transient ) {
+			delete_transient( 'vcn_webp_conversion_supported' );
 			?>
 			<div class="notice notice-error is-dismissible">
 				<p>
-					<strong><?php echo esc_html( get_plugin_data( __FILE__ )['Name'] ); ?>:</strong> 
+					<strong><?php echo esc_html( get_plugin_data( VCN_WEBP_CONVERTER_PLUGIN_FILE )['Name'] ); ?>:</strong> 
 					The Imagick extension is not available on your server or the webp format is not supported. Conversion will not work properly.
 					Please contact your hosting provider to enable the Imagick PHP extension.
 				</p>
 			</div>
 			<?php
-		} else {
+		} elseif ( 'yes' === $conversion_support_transient ) {
 			delete_transient( 'vcn_webp_conversion_supported' );
 			?>
 			<div class="notice notice-info is-dismissible">
