@@ -56,25 +56,6 @@ class Converter {
 	}
 
 	/**
-	 * Get image mime type.
-	 *
-	 * @param string $image_path The path to the image.
-	 * @return string The mime type of the image or false on failure.
-	 */
-	public function get_image_mime_type( $image_path ) {
-		if ( ! $this->is_imagick_available() ) {
-			return false;
-		}
-
-		try {
-			$imagick = new \Imagick( $image_path );
-			return $imagick->getImageMimeType();
-		} catch ( \Exception $e ) {
-			return false;
-		}
-	}
-
-	/**
 	 * Convert an image to WebP format.
 	 *
 	 * @param string $image_path The path to the image.
