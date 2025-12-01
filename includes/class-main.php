@@ -42,6 +42,7 @@ class Main {
 		// Add Hooks here.
 		register_activation_hook( VCN_WEBP_CONVERTER_PLUGIN_FILE, array( $this, 'activate' ) );
 		add_action( 'admin_notices', array( $this, 'display_messages' ) );
+		add_filter( 'wp_handle_upload_prefilter', array( $this, 'handle_upload' ) );
 	}
 
 	/**
@@ -109,5 +110,30 @@ class Main {
 			</div>
 			<?php
 		}
+	}
+
+	/**
+	 * Handle file uploads and convert to WebP if applicable.
+	 * This process will overwrite the original file in the upload (temp) directory.
+	 *
+	 * @param array $file The uploaded file data.
+	 * @return array The (possibly modified) file data.
+	 */
+	public function handle_upload( $file ) {
+		$mime_type = mime_content_type( $file['tmp_name'] );
+
+		if ( ! in_array( $mime_type, array( 'image/jpeg', 'image/png' ), true ) ) {
+			return $file;
+		}
+
+		$converter       = new Converter();
+		$webp_image_path = $converter->convert_to_webp( $file['tmp_name'] );
+
+		if ( $webp_image_path && file_exists( $webp_image_path ) ) {
+			$file['type'] = 'image/webp';
+			$file['size'] = filesize( $webp_image_path );
+		}
+
+		return $file;
 	}
 }
